@@ -10,6 +10,7 @@ I.G = 1; % Generation number
 I.Pa = 0.25; % fraction of abandoned nests
 I.A = 1; % Maximum Levy step size
 I.B = 1.1; % Power law index, 1 < B < 2
+I.phi = ( 1 + sqrt(5) ) / 2; % Golden ratio, use descriped in paper
 
 % Initialize nests in population
 I.n_nests = 20;
@@ -30,12 +31,34 @@ while I.G < 10 % arbitrary stopping parameter
     % Analyze the eggs within each nest
     for i = 1:abandon_value
         % Abandon the egg and update the new nest values/scores
-        [nests(i,1), nests(i,2), nests(i,3)] = abandon(nests(i,2:I.n_params+1), I)
-    end
-    for i = abandon_value+1:I.n_nests    
-            % Keep the egg   
+        [nests(i,1), nests(i,2), nests(i,3)] = flight(nests, i, I);
     end
     
+    I.top_rand = randi([abandon_value+1 I.n_nests], 1, I.n_nests - abandon_value + 1);
+    for i = abandon_value+1:I.n_nests    
+        % Keep the egg     
+        j = I.top_rand(i-abandon_value);
+        if j == i
+            k = randi([abandon_value+1 I.n_nests], 1, 1);
+            [a,b,c] = flight(nests, i, I); % fix later
+            if nests(k,1) < a
+                nests(k,2) = b;
+                nests(k,3) = c;
+            end
+        else
+            % Move distance dx from the worst nest in direction of best nest
+            % to generate a new candidate egg
+            dx = norm(nests(i, 2:end) - nests(j, 2:end)) / I.phi; % need to use L2 norm here?
+            cand = nests(I.n_nests, 2:end) + dx; % check signs
+            if f(cand) > nests(j,1)
+                [a,b,c] = flight(nests, i, I); % fix later
+                nests(j,1) = a;
+                nests(j,2) = b;
+                nests(j,3) = c;
+            end
+            
+        end
+    end
     I.G = I.G+1;
 end
 
@@ -47,19 +70,14 @@ function [fitness] = f(x)
     fitness = x(1)^2 + 2*x(2)^2 - 0.3*cos(3*pi*x(1)) - 0.4*cos(4*pi*x(2)) + 0.7;
 end
 
-% What to do when the egg is abandoned
-function [newscore, newegg_1, newegg_2] = abandon(old, I) % fix this return value later
+% What to do when taking a Levy flight and updating scores
+% TODO: fix this function (currently diverges, review Levy flight)
+function [newscore, newegg_1, newegg_2] = flight(nests, i, I) 
+    oldegg = nests(i, 2:I.n_params);
     alpha = ceil(I.A / sqrt(I.G)); % Levy step size
-    newegg = old + levy(alpha, I.n_params, I.B);
+    newegg = oldegg + levy(alpha, I.n_params, I.B);
     newegg_1 = newegg(1); 
     newegg_2 = newegg(2); 
     newscore = f(newegg);
 end
-
-% What to do when the egg is kept
-function [newscore, newegg_1, newegg_2] = keep(old, I)
-    % Pick another egg from the top eggs at random
-    
-end
-
 
