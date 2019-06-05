@@ -14,7 +14,7 @@ I.phi = ( 1 + sqrt(5) ) / 2; % Golden ratio, use described in paper
 % Initialize nests in population
 I.n_nests = 20;
 I.n_params = 2; % = number of positions to optimize
-nests_init = rand(I.n_nests, I.n_params); % Each row is a nest
+nests_init = rand(I.n_nests, I.n_params) * 10; % Each row is a nest
 
 % Calculate all fitness scores in a population
 scores_init = zeros(I.n_nests, 1);
@@ -26,15 +26,15 @@ end
 nests =  sortrows(horzcat(nests_init, scores_init), 3, 'descend');
 abandon_value = floor(I.Pa * I.n_nests); % Nests ranking below this should be discarded
 
-while I.G < 50 % arbitrary stopping parameter
+while I.G < 1000 % arbitrary stopping parameter
    for i = 1:abandon_value
-      % generate a new nest
-      candidate = flight(nests, i, I);
-      breed(candidate, (nests(i,:)));      
+      % generate a new nest by picking a better nest and flying
+      %j = ceil(rand(1)*(I.n_nests-abandon_value))i;
+      nests(i,:) = flight(nests, i, I);     
    end    
    
    for i = abandon_value+1:I.n_nests
-       % the nest has relatively good fitness: keep it
+       % the nest has relatively good fitness
    end
    
    I.G = I.G + 1; 
@@ -52,11 +52,11 @@ end
 
 % What to do when taking a Levy flight and updating scores
 function replacement = flight(nests, i, I) 
-    oldegg = nests(i, 2:I.n_params+1);
+    oldegg = nests(i, 1:I.n_params);
     alpha = I.A / sqrt(I.G); % step size scaling factor
     newegg = oldegg + alpha .* levy(1, I.n_params, I.beta);
     newscore = f(newegg);
-    replacement = horzcat(newscore, newegg);
+    replacement = horzcat(newegg, newscore);
 end
 
 % Recombination of chromosomes/individuals
@@ -66,9 +66,7 @@ function offspring = breed(mother, father, locus, drift)
     
     offspring = horzcat(mother(1:locus), father(locus+1:end));
     mutation = rand(size(offspring));
-    for i = 1:length(offspring)
-        if mutation(i) < drift
-            offspring(i) = rand(1);
-        end
+    if mutation < drift
+        offspring(locus) = rand(1);
     end
 end
