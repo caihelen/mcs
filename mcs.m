@@ -9,7 +9,7 @@ rng(5); % Set seed
 I.G = 1; % Generation number
 I.Pa = 0.25; % fraction of abandoned nests
 I.A = 1; % Maximum Levy step size
-I.B = 1.1; % Power law index, 1 < B < 2
+I.beta = 1.5; % Power law index, 1 < B < 2
 I.phi = ( 1 + sqrt(5) ) / 2; % Golden ratio, use descriped in paper
 
 % Initialize nests in population
@@ -60,6 +60,7 @@ while I.G < 10 % arbitrary stopping parameter
         end
     end
     I.G = I.G+1;
+    nests
 end
 
 
@@ -75,7 +76,7 @@ end
 function [newscore, newegg_1, newegg_2] = flight(nests, i, I) 
     oldegg = nests(i, 2:I.n_params);
     alpha = ceil(I.A / sqrt(I.G)); % Levy step size
-    newegg = oldegg + levy(alpha, I.n_params, I.B);
+    newegg = oldegg + levy(alpha, I.n_params, I.beta);
     newegg_1 = newegg(1); 
     newegg_2 = newegg(2); 
     newscore = f(newegg);
