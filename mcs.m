@@ -1,8 +1,7 @@
 % H. Cai
 
 % An implementation of the modified cuckoo search
-% Optimizing the first Bohachevsky function
-% The global minimum is known to be at (0,0) where f = 0
+% Optimizing de Jong's function at (0,0) where f = 0
 
 rng(5); % Set seed
 I.G = 1; % Generation number
@@ -13,8 +12,10 @@ I.phi = ( 1 + sqrt(5) ) / 2; % Golden ratio, use described in paper
 
 % Initialize nests in population
 I.n_nests = 20;
-I.n_params = 2; % = number of positions to optimize
-nests_init = rand(I.n_nests, I.n_params) * 10; % Each row is a nest
+I.n_params = 50; % = number of positions to optimize
+a = -5.12;
+b = 5.12;
+nests_init = (b-a) .* rand(I.n_nests,I.n_params) + a; % Each row is a nest
 
 % Calculate all fitness scores in a population
 scores_init = zeros(I.n_nests, 1);
@@ -23,7 +24,7 @@ for i = 1:I.n_nests
 end
 
 % Rank the nests in order of fitness
-nests =  sortrows(horzcat(nests_init, scores_init), 3, 'descend');
+nests =  sortrows(horzcat(nests_init, scores_init), I.n_params+1, 'descend');
 abandon_value = floor(I.Pa * I.n_nests); % Nests ranking below this should be discarded
 
 while I.G < 1000 % arbitrary stopping parameter
@@ -38,7 +39,7 @@ while I.G < 1000 % arbitrary stopping parameter
    end
    
    I.G = I.G + 1; 
-   nests
+   nests(:,51)
    drawplot(nests)
 end
 
@@ -47,7 +48,7 @@ close all
 
 % Define a fitness/loss function f()
 function [fitness] = f(x)
-    fitness = x(1)^2 + 2*x(2)^2 - 0.3*cos(3*pi*x(1)) - 0.4*cos(4*pi*x(2)) + 0.7;
+    fitness = sum(x.^2);
 end
 
 % What to do when taking a Levy flight and updating scores
