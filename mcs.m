@@ -59,3 +59,16 @@ function replacement = flight(nests, i, I)
     replacement = horzcat(newscore, newegg);
 end
 
+% Recombination of chromosomes/individuals
+function offspring = breed(mother, father, locus, drift)
+    % locus must be leq the length of mother/father vector
+    % drift describes the probability of random mutation
+    
+    offspring = horzcat(mother(1:locus), father(locus+1:end));
+    mutation = rand(size(offspring));
+    for i = 1:length(offspring)
+        if mutation(i) < drift
+            offspring(i) = rand(1);
+        end
+    end
+end
